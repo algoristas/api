@@ -14,6 +14,9 @@ func main() {
 	resultsController := controllers.NewResultsController()
 	http.HandleFunc("/v1/results", resultsController.Index)
 
+	problemsController := controllers.NewProblemsController()
+	http.HandleFunc("/v1/problems/sets", problemsController.SetIndex)
+
 	fmt.Println("Listening at :8080...")
 	http.ListenAndServe(":8080", nil)
 }
