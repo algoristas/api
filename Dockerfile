@@ -5,6 +5,8 @@ MAINTAINER rafaelrendonpablo@gmail.com
 RUN mkdir -p /app
 WORKDIR /app
 
+ENV APP_ROOT /app
+
 COPY . /app
 
 EXPOSE 8080
