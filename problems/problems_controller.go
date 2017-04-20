@@ -1,19 +1,20 @@
-package controllers
+package problems
 
 import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/algoristas/api/problems"
 )
 
+// ProblemsController describes controller for requests at /problems/.
 type ProblemsController struct {
+	dao DAO
 }
 
+// SetIndex handles /problems/sets endpoint, returns all problems.
 func (t *ProblemsController) SetIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	data, err := problems.GetSets()
+	data, err := t.dao.GetSets()
 	if err != nil {
 		log.Printf("Failed to retrieve results: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -24,6 +25,9 @@ func (t *ProblemsController) SetIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func NewProblemsController() *ProblemsController {
-	return &ProblemsController{}
+// NewController returns a new initialized ProblemsController.
+func NewController(problemsDAO DAO) *ProblemsController {
+	return &ProblemsController{
+		dao: problemsDAO,
+	}
 }
