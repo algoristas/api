@@ -1,17 +1,20 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
-	"github.com/algoristas/api/controllers"
+	"github.com/algoristas/api/problems"
+	"github.com/algoristas/api/results"
+	"github.com/algoristas/api/router"
+	"github.com/algoristas/api/standings"
 )
 
 func main() {
-	standingsController := controllers.NewStandingsController()
-	http.HandleFunc("/v1/standings", standingsController.Index)
-
-	resultsController := controllers.NewResultsController()
-	http.HandleFunc("/v1/results", resultsController.Index)
-
-	http.ListenAndServe(":8080", nil)
+	log.Println("Listening at :8080...")
+	http.ListenAndServe(":8080", router.Wire(router.Dependencies{
+		StandingsDAO: standings.NewStandingsDAO(),
+		ResultsDAO:   results.NewResultsDAO(),
+		ProblemsDAO:  problems.NewProblemsDAO(),
+	}))
 }
