@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-// ProblemsController describes controller for requests at /problems/.
-type ProblemsController struct {
-	dao DAO
+// Controller describes controller for requests at /problems/.
+type Controller struct {
+	dataProvider DataProvider
 }
 
 // SetIndex handles /problems/sets endpoint, returns all problems.
-func (t *ProblemsController) SetIndex(w http.ResponseWriter, r *http.Request) {
+func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	data, err := t.dao.GetSets()
+	data, err := t.dataProvider.GetSets()
 	if err != nil {
 		log.Printf("Failed to retrieve results: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -25,9 +25,9 @@ func (t *ProblemsController) SetIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-// NewController returns a new initialized ProblemsController.
-func NewController(problemsDAO DAO) *ProblemsController {
-	return &ProblemsController{
-		dao: problemsDAO,
+// NewController returns a new initialized Controller.
+func NewController(datProvider DataProvider) *Controller {
+	return &Controller{
+		dataProvider: datProvider,
 	}
 }

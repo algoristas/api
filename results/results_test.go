@@ -10,16 +10,16 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type DAOStub struct {
+type StubbedDataProvider struct {
 }
 
-func (t *DAOStub) GetResults() ([]byte, error) {
+func (t *StubbedDataProvider) GetResults() ([]byte, error) {
 	return []byte(`{"users":[]}`), nil
 }
 
 var _ = Describe("Results", func() {
 	var ts = httptest.NewServer(router.Wire(router.Dependencies{
-		ResultsDAO: &DAOStub{},
+		ResultsDataProvider: &StubbedDataProvider{},
 	}))
 
 	It("should return results", func() {

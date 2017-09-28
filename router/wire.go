@@ -12,9 +12,9 @@ import (
 
 // Dependencies contains every dependency used by the application.
 type Dependencies struct {
-	StandingsDAO standings.DAO
-	ProblemsDAO  problems.DAO
-	ResultsDAO   results.DAO
+	StandingsDataProvider standings.DataProvider
+	ProblemsDataProvider  problems.DataProvider
+	ResultsDataProvider   results.DataProvider
 }
 
 // Wire returns an http.Handler with all the API endpoints configured using the provided
@@ -22,13 +22,13 @@ type Dependencies struct {
 func Wire(deps Dependencies) http.Handler {
 	r := mux.NewRouter()
 
-	standingsController := standings.NewController(deps.StandingsDAO)
+	standingsController := standings.NewController(deps.StandingsDataProvider)
 	r.HandleFunc("/v1/standings", standingsController.Index)
 
-	resultsController := results.NewController(deps.ResultsDAO)
+	resultsController := results.NewController(deps.ResultsDataProvider)
 	r.HandleFunc("/v1/results", resultsController.Index)
 
-	problemsController := problems.NewController(deps.ProblemsDAO)
+	problemsController := problems.NewController(deps.ProblemsDataProvider)
 	r.HandleFunc("/v1/problems/sets", problemsController.SetIndex)
 	return r
 }

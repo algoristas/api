@@ -1,3 +1,4 @@
 *.swp
 api
 bin/api
+.idea/

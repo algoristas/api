@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-// ResultsController describes controller for requests at /results/.
-type ResultsController struct {
-	dao DAO
+// Controller describes controller for requests at /results/.
+type Controller struct {
+	dataProvider DataProvider
 }
 
 // Index handles /results/ endpoint, returns all results.
-func (t *ResultsController) Index(w http.ResponseWriter, r *http.Request) {
+func (t *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	data, err := t.dao.GetResults()
+	data, err := t.dataProvider.GetResults()
 	if err != nil {
 		log.Printf("Failed to retrieve results: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -25,9 +25,9 @@ func (t *ResultsController) Index(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-// NewController returns an initialized ResultsController.
-func NewController(resultsDAO DAO) *ResultsController {
-	return &ResultsController{
-		dao: resultsDAO,
+// NewController returns an initialized Controller.
+func NewController(dataProvider DataProvider) *Controller {
+	return &Controller{
+		dataProvider: dataProvider,
 	}
 }

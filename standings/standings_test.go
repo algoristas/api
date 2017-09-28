@@ -11,15 +11,15 @@ import (
 	"github.com/algoristas/api/router"
 )
 
-type DAOStub struct{}
+type StubbedDataProvider struct{}
 
-func (t *DAOStub) GetStandings() ([]byte, error) {
+func (t *StubbedDataProvider) GetStandings() ([]byte, error) {
 	return []byte(`{"users":[]}`), nil
 }
 
 var _ = Describe("Standings", func() {
 	var ts = httptest.NewServer(router.Wire(router.Dependencies{
-		StandingsDAO: &DAOStub{},
+		StandingsDataProvider: &StubbedDataProvider{},
 	}))
 
 	It("should return standings data", func() {

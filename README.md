@@ -8,10 +8,11 @@ docker build -t algoristas-api .
 ```
 
 Followed by:
-`docker run -p 8080:8080 algoristas-api``
+```
+docker run -p 8080:8080 algoristas-api
 ```
 
-This last command will run the application inside the container and will expose the port 8080. You call test the API by querying your localhost at 8080.
+This last command will run the application inside the container and will expose the port 8080. You can test the API by querying localhost at 8080.
 
 ```
 curl localhost:8080/v1/results

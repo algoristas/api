@@ -5,17 +5,17 @@ import (
 	"os"
 )
 
-// ProblemsDAO implements the DAO interface.
-type ProblemsDAO struct {
+// DefaultDataProvider implements the DataProvider interface.
+type DefaultDataProvider struct {
 }
 
 // GetSets returns all the problems in the database.
-func (t *ProblemsDAO) GetSets() ([]byte, error) {
+func (t *DefaultDataProvider) GetSets() ([]byte, error) {
 	fileName := os.Getenv("APP_ROOT") + "/problems/fixtures/problemsets.json"
 	return ioutil.ReadFile(fileName)
 }
 
-// NewProblemsDAO returns a new object that implemts the DAO interface.
-func NewProblemsDAO() DAO {
-	return &ProblemsDAO{}
+// NewDataProvider returns a new DataProvider instance.
+func NewDataProvider() DataProvider {
+	return &DefaultDataProvider{}
 }
