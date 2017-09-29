@@ -12,16 +12,16 @@ import (
 	"github.com/algoristas/api/router"
 )
 
-type DAOStub struct {
+type StubbedDataProvider struct {
 }
 
-func (t *DAOStub) GetSets() ([]byte, error) {
+func (t *StubbedDataProvider) GetSets() ([]byte, error) {
 	return []byte(`{"weeks":[]}`), nil
 }
 
 var _ = Describe("Problems", func() {
 	var ts = httptest.NewServer(router.Wire(router.Dependencies{
-		ProblemsDAO: &DAOStub{},
+		ProblemsDataProvider: &StubbedDataProvider{},
 	}))
 
 	It("returns problem list", func() {
