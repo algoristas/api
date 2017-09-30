@@ -28,7 +28,7 @@ func (t *Controller) GetUser(w http.ResponseWriter, r *http.Request, params http
 	var userErr error
 
 	if numberRegexp.MatchString(userID) {
-		id, err := strconv.ParseInt(userID, 10, 32)
+		id, err := strconv.Atoi(userID)
 		if err != nil {
 			log.Printf("Invalid ID (%s): %s", userID, err)
 			badRequest(w, "Invalid ID")
