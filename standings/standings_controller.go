@@ -3,6 +3,8 @@ package standings
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Controller describes controller for requests at /standings/.
@@ -11,7 +13,7 @@ type Controller struct {
 }
 
 // Index handles /standings endpoint, returns the list of standings.
-func (t *Controller) Index(w http.ResponseWriter, r *http.Request) {
+func (t *Controller) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := t.dataProvider.GetStandings()
 	if err != nil {

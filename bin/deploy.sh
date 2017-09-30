@@ -13,6 +13,7 @@ function unit_test() {
     ginkgo problems/
     ginkgo standings/
     ginkgo results/
+    ginkgo users/
 }
 
 function run() {

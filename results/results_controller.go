@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Controller describes controller for requests at /results/.
@@ -12,7 +14,7 @@ type Controller struct {
 }
 
 // Index handles /results/ endpoint, returns all results.
-func (t *Controller) Index(w http.ResponseWriter, r *http.Request) {
+func (t *Controller) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := t.dataProvider.GetResults()
 	if err != nil {

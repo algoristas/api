@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Controller describes controller for requests at /problems/.
@@ -12,7 +14,7 @@ type Controller struct {
 }
 
 // SetIndex handles /problems/sets endpoint, returns all problems.
-func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request) {
+func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := t.dataProvider.GetSets()
 	if err != nil {
