@@ -3,11 +3,12 @@ package router
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 
 	"github.com/algoristas/api/problems"
 	"github.com/algoristas/api/results"
 	"github.com/algoristas/api/standings"
+	"github.com/algoristas/api/users"
 )
 
 // Dependencies contains every dependency used by the application.
@@ -15,20 +16,24 @@ type Dependencies struct {
 	StandingsDataProvider standings.DataProvider
 	ProblemsDataProvider  problems.DataProvider
 	ResultsDataProvider   results.DataProvider
+	UsersDataProvider     users.DataProvider
 }
 
 // Wire returns an http.Handler with all the API endpoints configured using the provided
 // dependencies.
 func Wire(deps Dependencies) http.Handler {
-	r := mux.NewRouter()
+	r := httprouter.New()
 
 	standingsController := standings.NewController(deps.StandingsDataProvider)
-	r.HandleFunc("/v1/standings", standingsController.Index)
+	r.GET("/v1/standings", standingsController.Index)
 
 	resultsController := results.NewController(deps.ResultsDataProvider)
-	r.HandleFunc("/v1/results", resultsController.Index)
+	r.GET("/v1/results", resultsController.Index)
 
 	problemsController := problems.NewController(deps.ProblemsDataProvider)
-	r.HandleFunc("/v1/problems/sets", problemsController.SetIndex)
+	r.GET("/v1/problems/sets", problemsController.SetIndex)
+
+	usersController := users.NewController(deps.UsersDataProvider)
+	r.GET("/v1/users/:userId", usersController.GetUser)
 	return r
 }

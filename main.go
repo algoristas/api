@@ -8,6 +8,7 @@ import (
 	"github.com/algoristas/api/results"
 	"github.com/algoristas/api/router"
 	"github.com/algoristas/api/standings"
+	"github.com/algoristas/api/users"
 )
 
 func main() {
@@ -16,5 +17,6 @@ func main() {
 		StandingsDataProvider: standings.NewDataProvider(),
 		ResultsDataProvider:   results.NewDataProvider(),
 		ProblemsDataProvider:  problems.NewDataProvider(),
+		UsersDataProvider:     users.NewDataProvider(),
 	}))
 }
