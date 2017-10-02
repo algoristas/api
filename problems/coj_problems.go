@@ -10,14 +10,39 @@ import (
         "io/ioutil"
 )
 
-// generate_request_url generates the URL to make a GET Resquest.
+// COJJudgement is the struct to represent a COJ judment for a submition.
+type COJJudgement struct {
+    Id        int     `json:"id"`
+    Date      string  `json:"date"`
+    Username  string  `json:"user"`
+    ProblemId int     `json:"problem"`
+    Status    string  `json:"judgment"`
+    Language  string  `json:"lang"`
+}
+
+
+// COJJudgmentResponse is the struct to represent a collection of COJ Judgments.
+type COJJudgmentResponse struct {
+    Collection [] COJJudgement
+}
+
+
+// SubmitionsProblemInfo represents the important information of the submitions to a problem
+// The values for HasSolved && HasTried are "YES" && "NO"
+type SubmitionsProblemInfo struct {
+    HasSolved  string
+    HasTried   string
+}
+
+// generateRequestURL generates the URL to make a GET Resquest.
+// 
 // Generates the format as follows:
 //    http://URL_REQUESTED?param1=value1&param2=value2&...&paramn=valuen
 // It returns a String that is the well format URL to make the request.
-func generate_request_url(method, url_requested string, parameters map[string]string) (string, error){
+func generateRequestURL(method, url_requested string, parameters map[string]string) (string, error){
     request, err := http.NewRequest(method, url_requested, nil)
     if err != nil {
-        log.Panic(err)
+        log.Println("GenerateResquestUrl failed: ", err)
         return "", err
     }
 
@@ -29,91 +54,86 @@ func generate_request_url(method, url_requested string, parameters map[string]st
     return request.URL.String(), nil
 }
 
-// COJJudgement is the struct to represent a COJ judment for a submition.
-type COJJudgement struct {
-    Id int
-    Date string
-    User string
-    Prob int
-    Judgment string
-    Errortestcase int
-    Time int
-    Memory string
-    Tam string
-    Lang string
+// createNetClient generates a http client to make request.
+// 
+// It returns a pointer of type http.Client to make request to servers.
+// We do the request in this way so we can control the timeout, otherwise we may have troubles
+// if the server we are requesting for fails.
+func createNetClient() (*http.Client){
+    const timeoutRequest = 10 // Requests timeouts
+    const timeoutDial = 180  // limits the time spent establishing a TCP connection, often around 3 minutes.
+    const timeoutTSL = 30    // limits the time spent performing the TLS handshake.
+
+    // cap the TCP connect and TLS handshake timeouts
+    // as well as establishing an end-to-end request timeout.
+    netTransport := &http.Transport{
+      Dial: (&net.Dialer{
+        Timeout: timeoutDial * time.Second,
+      }).Dial,
+      TLSHandshakeTimeout: timeoutTSL * time.Second,
+    }
+    netClient := &http.Client{
+      Timeout: time.Second * timeoutRequest,
+      Transport: netTransport,
+    }
+
+    return netClient
 }
-
-// COJJudgmentResponse is the struct to represent a collection of COJ Judgments.
-type COJJudgmentResponse struct {
-    Collection [] COJJudgement
-}
-
-
-// SubmitionsProblemInfo represents the important information of the submitions to a problem
-// The values for has_solved && has_tried are "YES" && "NO"
-type SubmitionsProblemInfo struct {
-    has_solved  string
-    has_tried   string
-}
-
 
 // getHasSolvedInCOJ returns the important information that said if a user "USERNAME" has solve or has tried
 // the problem "PID" in the COJ.
 func getHasSolvedInCOJ(pid string, username string) (SubmitionsProblemInfo, error){
-    submitionsProblemInfo := SubmitionsProblemInfo{"NO", "NO"}
+    sumbitionsInfo := SubmitionsProblemInfo{"NO", "NO"}
 
     // Parameters sent to the API
-    api_parameters := map[string]string{ "username": username, "pid": pid};
+    apiParameters := map[string]string{ "username": username, "pid": pid};
     // Generate the URL for make the request
-    api_url, url_err := generate_request_url("GET", "http://coj.uci.cu/api/judgment", api_parameters)
+    apiURL, errApiURL := generateRequestURL("GET", "http://coj.uci.cu/api/judgment", apiParameters)
     
-    if url_err !=nil {
-        log.Panic(url_err)
-        return submitionsProblemInfo, url_err
+    if errApiURL !=nil {
+        log.Println("GenerateResquestUrl failed: ", errApiURL)
+        return sumbitionsInfo, errApiURL
     }
 
-    // Generate the http.Client to make the request. We do the request in this way so we can controll
+    // Generate the http.Client to make the request. We do the request in this way so we can control
     // the time out, otherwise we may have troubles if COJ API fails.
-    netTransport := &http.Transport{
-      Dial: (&net.Dialer{
-        Timeout: 5 * time.Second,
-      }).Dial,
-      TLSHandshakeTimeout: 5 * time.Second,
-    }
-    netClient := &http.Client{
-      Timeout: time.Second * 10,
-      Transport: netTransport,
-    }
+    netClient := createNetClient()
 
-    response, response_error := netClient.Get(api_url)
-    if response_error != nil {
-        log.Panic(response_error)
-        return submitionsProblemInfo, response_error
+    response, errResponse := netClient.Get(apiURL)
+    if errResponse != nil {
+        log.Println("GET Resquest failed: ", errResponse)
+        return sumbitionsInfo, errResponse
     }
 
 
-    buffer,_ := ioutil.ReadAll(response.Body)
+    buffer, errBuffer := ioutil.ReadAll(response.Body)
+    if errBuffer != nil {
+        log.Println("Parse response to buffer failed: ", errBuffer)
+        return sumbitionsInfo, errBuffer
+    }
+
     // Note: The Judge response is a JSON array, we should parse each element as a COJJudgment
     // so we can use it as a struct. We can use other approach that is parse the JSON as a map
     // See the example below:
-    // 		data := make([] map[string]interface{}, 0)
+    //      data := make([] map[string]interface{}, 0)
 
     data := make([] COJJudgement, 0)
     err := json.Unmarshal(buffer, &data)
     if err != nil {
-        log.Panic(err)
+        log.Println("Parse response to COJJudgement failed: ", err)
+        return sumbitionsInfo, err
     }
 
     // Iterate over all submitions to check if the problem has been solve by the user.
     // We can make another call to the API adding an parameter status=ac but we already have all the
     // submitions that is a waste of time.
     for _, sumbition := range data {
-        if submitionsProblemInfo.has_tried == "" || submitionsProblemInfo.has_tried == "NO" {
-            submitionsProblemInfo.has_tried = "YES"
+        if sumbitionsInfo.HasTried == "" || sumbitionsInfo.HasTried == "NO" {
+            sumbitionsInfo.HasTried = "YES"
         }
-        if sumbition.Judgment == "Accepted" {
-            submitionsProblemInfo.has_solved = "YES"
+        if sumbition.Status == "Accepted" {
+            sumbitionsInfo.HasSolved = "YES"
         }
     }
-    return submitionsProblemInfo, nil
+    return sumbitionsInfo, nil
 }

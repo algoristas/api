@@ -23,3 +23,16 @@ curl -i localhost:8080/v1/standings
 
 # Code Review guidelines
 You can read [Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) for more info about how to add comments in Go code.
+
+# Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+
+```
+git pull
+git checkout -b your_branch
+git add *all_files_to_add*
+git commit
+git push origin your_branch
+```
+Then, go to GitHub to make a push request
