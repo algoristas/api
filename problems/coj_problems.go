@@ -30,8 +30,8 @@ type COJJudgmentResponse struct {
 // SubmitionsProblemInfo represents the important information of the submitions to a problem
 // The values for HasSolved && HasTried are "YES" && "NO"
 type SubmitionsProblemInfo struct {
-    HasSolved  string
-    HasTried   string
+    HasSolved  bool
+    HasTried   bool
 }
 
 // generateRequestURL generates the URL to make a GET Resquest.
@@ -60,20 +60,21 @@ func generateRequestURL(method, url_requested string, parameters map[string]stri
 // We do the request in this way so we can control the timeout, otherwise we may have troubles
 // if the server we are requesting for fails.
 func createNetClient() (*http.Client){
-    const timeoutRequest = 10 // Requests timeouts
-    const timeoutDial = 180  // limits the time spent establishing a TCP connection, often around 3 minutes.
-    const timeoutTSL = 30    // limits the time spent performing the TLS handshake.
+    const timeoutRequest = 10 * time.Second // Requests timeouts
+    const timeoutDial = 180 * time.Second   // limits the time spent establishing a TCP connection,
+                                            //   often around 3 minutes.
+    const timeoutTSL = 30 * time.Second     // limits the time spent performing the TLS handshake.
 
     // cap the TCP connect and TLS handshake timeouts
     // as well as establishing an end-to-end request timeout.
     netTransport := &http.Transport{
       Dial: (&net.Dialer{
-        Timeout: timeoutDial * time.Second,
+        Timeout: timeoutDial,
       }).Dial,
-      TLSHandshakeTimeout: timeoutTSL * time.Second,
+      TLSHandshakeTimeout: timeoutTSL,
     }
     netClient := &http.Client{
-      Timeout: time.Second * timeoutRequest,
+      Timeout: time.Second,
       Transport: netTransport,
     }
 
@@ -83,16 +84,16 @@ func createNetClient() (*http.Client){
 // getHasSolvedInCOJ returns the important information that said if a user "USERNAME" has solve or has tried
 // the problem "PID" in the COJ.
 func getHasSolvedInCOJ(pid string, username string) (SubmitionsProblemInfo, error){
-    sumbitionsInfo := SubmitionsProblemInfo{"NO", "NO"}
+    sumbitionsInfo := SubmitionsProblemInfo{false, false}
 
     // Parameters sent to the API
     apiParameters := map[string]string{ "username": username, "pid": pid};
     // Generate the URL for make the request
-    apiURL, errApiURL := generateRequestURL("GET", "http://coj.uci.cu/api/judgment", apiParameters)
+    apiURL, err := generateRequestURL("GET", "http://coj.uci.cu/api/judgment", apiParameters)
     
-    if errApiURL !=nil {
-        log.Println("GenerateResquestUrl failed: ", errApiURL)
-        return sumbitionsInfo, errApiURL
+    if err != nil {
+        log.Println("GenerateResquestUrl failed: ", err)
+        return sumbitionsInfo, err
     }
 
     // Generate the http.Client to make the request. We do the request in this way so we can control
@@ -104,7 +105,6 @@ func getHasSolvedInCOJ(pid string, username string) (SubmitionsProblemInfo, erro
         log.Println("GET Resquest failed: ", errResponse)
         return sumbitionsInfo, errResponse
     }
-
 
     buffer, errBuffer := ioutil.ReadAll(response.Body)
     if errBuffer != nil {
@@ -118,21 +118,21 @@ func getHasSolvedInCOJ(pid string, username string) (SubmitionsProblemInfo, erro
     //      data := make([] map[string]interface{}, 0)
 
     data := make([] COJJudgement, 0)
-    err := json.Unmarshal(buffer, &data)
-    if err != nil {
-        log.Println("Parse response to COJJudgement failed: ", err)
-        return sumbitionsInfo, err
+    errParse := json.Unmarshal(buffer, &data)
+    if errParse != nil {
+        log.Println("Parse response to COJJudgement failed: ", errParse)
+        return sumbitionsInfo, errParse
     }
 
     // Iterate over all submitions to check if the problem has been solve by the user.
     // We can make another call to the API adding an parameter status=ac but we already have all the
     // submitions that is a waste of time.
     for _, sumbition := range data {
-        if sumbitionsInfo.HasTried == "" || sumbitionsInfo.HasTried == "NO" {
-            sumbitionsInfo.HasTried = "YES"
+        if sumbitionsInfo.HasTried == false {
+            sumbitionsInfo.HasTried = true
         }
         if sumbition.Status == "Accepted" {
-            sumbitionsInfo.HasSolved = "YES"
+            sumbitionsInfo.HasSolved = true
         }
     }
     return sumbitionsInfo, nil

@@ -35,4 +35,4 @@ git add *all_files_to_add*
 git commit
 git push origin your_branch
 ```
-Then, go to GitHub to make a push request
+Then, go to GitHub to make a pull request
