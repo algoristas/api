@@ -71,7 +71,7 @@ func createNetClient() *http.Client {
 		TLSHandshakeTimeout: timeoutTSL,
 	}
 	netClient := &http.Client{
-		Timeout:   time.Second,
+		Timeout:   timeoutRequest,
 		Transport: netTransport,
 	}
 
@@ -124,10 +124,11 @@ func getHasSolvedInCOJ(pid string, username string) (SubmitionsProblemInfo, erro
 	// Iterate over all submitions to check if the problem has been solve by the user.
 	// We can make another call to the API adding an parameter status=ac but we already have all the
 	// submitions that is a waste of time.
+	if len(data) > 0 {
+		sumbitionsInfo.HasTried = true
+	}
+
 	for _, sumbition := range data {
-		if sumbitionsInfo.HasTried == false {
-			sumbitionsInfo.HasTried = true
-		}
 		if sumbition.Status == "Accepted" {
 			sumbitionsInfo.HasSolved = true
 		}
