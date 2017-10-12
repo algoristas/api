@@ -30,8 +30,9 @@ func Wire(deps Dependencies) http.Handler {
 	resultsController := results.NewController(deps.ResultsDataProvider)
 	r.GET("/v1/results", resultsController.Index)
 
-	problemsController := problems.NewController(deps.ProblemsDataProvider)
+	problemsController := problems.NewController(deps.ProblemsDataProvider, deps.UsersDataProvider)
 	r.GET("/v1/problems/sets", problemsController.SetIndex)
+	r.GET("/v1/users/:userId/problems/:problemId", problemsController.GetProblem)
 
 	usersController := users.NewController(deps.UsersDataProvider)
 	r.GET("/v1/users/:userId", usersController.GetUser)

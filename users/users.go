@@ -4,10 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"os"
+	"regexp"
+	"strconv"
 )
 
 var ErrNotFound = errors.New("User not found")
+
+var numberRegexp = regexp.MustCompile(`^\d+$`)
 
 // User describes a user.
 type User struct {
@@ -17,6 +22,19 @@ type User struct {
 
 // DefaultDataProvider implements the DataProvider interface.
 type DefaultDataProvider struct{}
+
+// FindUser finds user by ID, which could be either an integer or a user name.
+func (t *DefaultDataProvider) FindUser(id string) (*User, error) {
+	if numberRegexp.MatchString(id) {
+		numericID, err := strconv.Atoi(id)
+		if err != nil {
+			log.Printf("Invalid ID (%s): %s", id, err)
+			return nil, errors.New("Invalid ID")
+		}
+		return t.FindUserByID(uint(numericID))
+	}
+	return t.FindUserByUserName(id)
+}
 
 // FindUserByID finds user by its ID, returns error if the user does not exist
 // or something goes wrong retrieving the user.

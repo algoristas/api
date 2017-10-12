@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"encoding/json"
-	"regexp"
 
 	"github.com/julienschmidt/httprouter"
 )
-
-var numberRegexp = regexp.MustCompile(`^\d+$`)
 
 // Controller describes controller for requests at /users/.
 type Controller struct {
@@ -24,21 +20,7 @@ func (t *Controller) GetUser(w http.ResponseWriter, r *http.Request, params http
 	w.Header().Set("Content-Type", "application/json")
 	userID := params.ByName("userId")
 
-	var user *User
-	var userErr error
-
-	if numberRegexp.MatchString(userID) {
-		id, err := strconv.Atoi(userID)
-		if err != nil {
-			log.Printf("Invalid ID (%s): %s", userID, err)
-			badRequest(w, "Invalid ID")
-			return
-		}
-		user, userErr = t.usersDataProvider.FindUserByID(uint(id))
-	} else {
-		user, userErr = t.usersDataProvider.FindUserByUserName(userID)
-	}
-
+	user, userErr := t.usersDataProvider.FindUser(userID)
 	if userErr != nil {
 		if userErr == ErrNotFound {
 			log.Printf("User not found: %s", userID)

@@ -5,18 +5,21 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/algoristas/api/users"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rendon/httpresp"
 )
 
 // Controller describes controller for requests at /problems/.
 type Controller struct {
-	dataProvider DataProvider
+	problemsDataProvider DataProvider
+	usersDataProvider    users.DataProvider
 }
 
 // SetIndex handles /problems/sets endpoint, returns all problems.
 func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	data, err := t.dataProvider.GetSets()
+	data, err := t.problemsDataProvider.GetSets()
 	if err != nil {
 		log.Printf("Failed to retrieve results: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -27,9 +30,34 @@ func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request, _ httprout
 	w.Write(data)
 }
 
+// GetUserProblem handles the /users/:userId/problems/:problemId endpoint, returns problem details
+// for a given user.
+func (t *Controller) GetProblem(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID := params.ByName("userId")
+	_, err := t.usersDataProvider.FindUser(userID)
+	if err != nil {
+		httpresp.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	problemID := params.ByName("problemId")
+	_, err = t.problemsDataProvider.FindProblem(userID, problemID)
+	if err != nil {
+		log.Printf("Failed to retrieve problem: %s", err)
+		httpresp.ServerError(w, "Failed to retrieve problem")
+		return
+	}
+
+	//httpresp.Data(w, problem
+	fmt.Fprintf(w, "{}")
+}
+
 // NewController returns a new initialized Controller.
-func NewController(datProvider DataProvider) *Controller {
+func NewController(problemsDataProvider DataProvider, usersDataProvider users.DataProvider) *Controller {
 	return &Controller{
-		dataProvider: datProvider,
+		problemsDataProvider: problemsDataProvider,
+		usersDataProvider:    usersDataProvider,
 	}
 }

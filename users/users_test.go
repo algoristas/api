@@ -9,19 +9,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/algoristas/api/model"
 	"github.com/algoristas/api/router"
 	"github.com/algoristas/api/users"
 )
-
-type ErrorResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
 
 var usersDataProvider = users.NewDataProvider()
 
 // StubbedDataProvider implements users.DataProvider to test uncommon scenarios.
 type StubbedDataProvider struct{}
+
+func (t *StubbedDataProvider) FindUser(userName string) (*users.User, error) {
+	return nil, errors.New("Something went wrong!")
+}
 
 func (t *StubbedDataProvider) FindUserByID(id uint) (*users.User, error) {
 	return nil, errors.New("Something went wrong!")
@@ -73,7 +73,7 @@ var _ = Describe("Users", func() {
 			defer resp.Body.Close()
 			var decoder = json.NewDecoder(resp.Body)
 
-			var errorResponse ErrorResponse
+			var errorResponse model.ErrorResponse
 			Expect(decoder.Decode(&errorResponse)).To(BeNil())
 			Expect(errorResponse.Status).To(Equal(http.StatusNotFound))
 			Expect(errorResponse.Message).To(Equal("User not found"))
@@ -119,7 +119,7 @@ var _ = Describe("Users", func() {
 			defer resp.Body.Close()
 			var decoder = json.NewDecoder(resp.Body)
 
-			var errorResponse ErrorResponse
+			var errorResponse model.ErrorResponse
 			Expect(decoder.Decode(&errorResponse)).To(BeNil())
 			Expect(errorResponse.Status).To(Equal(http.StatusInternalServerError))
 			Expect(errorResponse.Message).To(Equal("Internal Server Error"))
