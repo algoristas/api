@@ -3,7 +3,6 @@ package users_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -69,7 +68,6 @@ var _ = Describe("Users", func() {
 		It("should return error if user does not exist", func() {
 			resp, err := http.Get(ts.URL + "/v1/users/nouser")
 			Expect(err).To(BeNil())
-			fmt.Printf("%v\n", resp.StatusCode)
 			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
 			defer resp.Body.Close()

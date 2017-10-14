@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"github.com/algoristas/api/problems"
 	"github.com/algoristas/api/router"
 	"github.com/algoristas/api/test"
@@ -18,7 +19,13 @@ import (
 )
 
 // See fixtures/users.json
-const codeforcesId = 3
+const codeforcesID = 3
+
+type ProblemResponse struct {
+	StatusCode uint             `json:"statusCode"`
+	Errors     []string         `json:"errors"`
+	Data       problems.Problem `json:"data"`
+}
 
 type StubbedDataProvider struct {
 }
@@ -27,8 +34,8 @@ func (t *StubbedDataProvider) GetSets() ([]byte, error) {
 	return []byte(`{"weeks":[]}`), nil
 }
 
-func (t *StubbedDataProvider) FindProblem(userID, problemID string) (*problems.Problem, error) {
-	return nil, errors.New("Something went wrong")
+func (t *StubbedDataProvider) FindProblem(userID string, problemID uint) (*problems.Problem, error) {
+	return nil, errors.New("something went wrong")
 }
 
 var _ = Describe("Problems", func() {
@@ -51,7 +58,7 @@ var _ = Describe("Problems", func() {
 
 	Describe("Codeforces", func() {
 		It("should return error if user is not found", func() {
-			resp, err := http.Get(ts.URL + "/v1/users/nobody/problems/580C")
+			resp, err := http.Get(ts.URL + "/v1/users/nobody/problems/1")
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
@@ -61,7 +68,7 @@ var _ = Describe("Problems", func() {
 		})
 
 		It("should return error if the problem can not be retrieved", func() {
-			resp, err := http.Get(ts.URL + "/v1/users/rendon/problems/580C")
+			resp, err := http.Get(ts.URL + "/v1/users/rendon/problems/1")
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
 
@@ -77,20 +84,22 @@ var _ = Describe("Problems", func() {
 				UsersDataProvider:    users.NewDataProvider(),
 			}))
 
-			resp, err := http.Get(ts.URL + "/v1/users/rendon/problems/580C")
+			resp, err := http.Get(ts.URL + "/v1/users/rendon/problems/1")
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			defer resp.Body.Close()
 			decoder := json.NewDecoder(resp.Body)
-			var problem problems.Problem
-			Expect(decoder.Decode(&problem)).To(BeNil())
-			Expect(problem.ID).To(Equal("580C"))
-			Expect(problem.OwnerID).To(Equal(codeforcesId))
+			var problemResponse ProblemResponse
+			Expect(decoder.Decode(&problemResponse)).To(BeNil())
+
+			problem := problemResponse.Data
+			Expect(problem.ID).To(Equal(uint(1)))
+			Expect(problem.OwnerID).To(Equal(codeforcesID))
 			Expect(problem.Title).To(Equal("Kefa and Park"))
 			Expect(problem.Source).To(Equal("http://codeforces.com/problemset/problem/580/C"))
 			Expect(problem.HasSolved).To(BeTrue())
-			Expect(problem.HasTried).To(BeFalse())
+			Expect(problem.HasTried).To(BeTrue())
 		})
 	})
 })

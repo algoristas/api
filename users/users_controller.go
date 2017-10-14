@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/rendon/httpresp"
 )
 
 // Controller describes controller for requests at /users/.
@@ -24,18 +25,18 @@ func (t *Controller) GetUser(w http.ResponseWriter, r *http.Request, params http
 	if userErr != nil {
 		if userErr == ErrNotFound {
 			log.Printf("User not found: %s", userID)
-			userNotFound(w, "User not found")
+			httpresp.NotFound(w, "User not found")
 			return
 		}
 		log.Printf("Failed to retrieve user: %s", userErr)
-		internalServerError(w, "Internal Server Error")
+		httpresp.ServerError(w, "Internal Server Error")
 		return
 	}
 
 	data, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("Failed to serialize response: %s", err)
-		internalServerError(w, "Failed to generate response")
+		httpresp.ServerError(w, "Failed to generate response")
 		return
 	}
 	fmt.Fprintf(w, "%s", data)
@@ -48,17 +49,3 @@ func NewController(userDataProvider DataProvider) *Controller {
 	}
 }
 
-func internalServerError(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusInternalServerError)
-	fmt.Fprintf(w, `{"status": 500, "message": "%s"}`, message)
-}
-
-func userNotFound(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprintf(w, `{"status": 404, "message": "%s"}`, message)
-}
-
-func badRequest(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprintf(w, `{"status": 400, "message": "%s"}`, message)
-}

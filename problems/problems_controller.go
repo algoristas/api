@@ -8,6 +8,7 @@ import (
 	"github.com/algoristas/api/users"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rendon/httpresp"
+	"strconv"
 )
 
 // Controller describes controller for requests at /problems/.
@@ -36,22 +37,25 @@ func (t *Controller) GetProblem(w http.ResponseWriter, r *http.Request, params h
 	w.Header().Set("Content-Type", "application/json")
 
 	userID := params.ByName("userId")
-	_, err := t.usersDataProvider.FindUser(userID)
+	user, err := t.usersDataProvider.FindUser(userID)
 	if err != nil {
 		httpresp.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	problemID := params.ByName("problemId")
-	_, err = t.problemsDataProvider.FindProblem(userID, problemID)
+	problemID, err  := strconv.Atoi(params.ByName("problemId"))
+	if err != nil {
+		httpresp.BadRequest(w, "Invalid problem ID")
+	}
+
+	problem, err := t.problemsDataProvider.FindProblem(user.UserName, uint(problemID))
 	if err != nil {
 		log.Printf("Failed to retrieve problem: %s", err)
 		httpresp.ServerError(w, "Failed to retrieve problem")
 		return
 	}
 
-	//httpresp.Data(w, problem
-	fmt.Fprintf(w, "{}")
+	httpresp.Data(w, problem, http.StatusOK)
 }
 
 // NewController returns a new initialized Controller.

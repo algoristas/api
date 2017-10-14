@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "ownerId": 3,
+    "externalId": "580C",
+    "title": "Kefa and Park",
+    "source": "http://codeforces.com/problemset/problem/580/C"
+  },
+  {
+    "id": 2,
+    "ownerId": 3,
+    "externalId": "672B",
+    "title": "Different is Good",
+    "source": "http://codeforces.com/problemset/problem/672/B"
+  },
+  {
+    "id": 3,
+    "ownerId": 3,
+    "externalId": "625B",
+    "title": "War of the Corporations",
+    "source": "http://codeforces.com/problemset/problem/625/B"
+  },
+  {
+    "id": 4,
+    "ownerId": 3,
+    "externalId": "779D",
+    "title": "String Game",
+    "source": "http://codeforces.com/contest/779/problem/D"
+  },
+  {
+    "id": 5,
+    "ownerId": 3,
+    "externalId": "245B",
+    "title": "Internet Address",
+    "source": "codeforces.com/problemset/problem/245/B"
+  }
+]
