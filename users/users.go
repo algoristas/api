@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+// ErrNotFound error returned when a user is not found, useful to test this type of error in particular w/o inspecting
+// the content of the error.
 var ErrNotFound = errors.New("User not found")
 
 var numberRegexp = regexp.MustCompile(`^\d+$`)
@@ -29,7 +31,7 @@ func (t *DefaultDataProvider) FindUser(id string) (*User, error) {
 		numericID, err := strconv.Atoi(id)
 		if err != nil {
 			log.Printf("Invalid ID (%s): %s", id, err)
-			return nil, errors.New("Invalid ID")
+			return nil, errors.New("invalid ID")
 		}
 		return t.FindUserByID(uint(numericID))
 	}

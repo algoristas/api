@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
 	"github.com/algoristas/api/problems"
 	"github.com/algoristas/api/router"
 	"github.com/algoristas/api/test"

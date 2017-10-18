@@ -16,10 +16,10 @@ type Controller struct {
 	usersDataProvider DataProvider
 }
 
-// GetUser handles the /users/:userId endpoint.
+// GetUser handles the /users/:userID endpoint.
 func (t *Controller) GetUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	userID := params.ByName("userId")
+	userID := params.ByName("userID")
 
 	user, userErr := t.usersDataProvider.FindUser(userID)
 	if userErr != nil {
@@ -48,4 +48,3 @@ func NewController(userDataProvider DataProvider) *Controller {
 		usersDataProvider: userDataProvider,
 	}
 }
-

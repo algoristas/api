@@ -31,26 +31,26 @@ func (t *Controller) SetIndex(w http.ResponseWriter, r *http.Request, _ httprout
 	w.Write(data)
 }
 
-// GetUserProblem handles the /users/:userId/problems/:problemId endpoint, returns problem details
+// GetProblem handles the /users/:userID/problems/:problemID endpoint, returns problem details
 // for a given user.
 func (t *Controller) GetProblem(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userID := params.ByName("userId")
+	userID := params.ByName("userID")
 	user, err := t.usersDataProvider.FindUser(userID)
 	if err != nil {
 		httpresp.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	problemID, err  := strconv.Atoi(params.ByName("problemId"))
+	problemID, err := strconv.Atoi(params.ByName("problemID"))
 	if err != nil {
 		httpresp.BadRequest(w, "Invalid problem ID")
 	}
 
 	problem, err := t.problemsDataProvider.FindProblem(user.UserName, uint(problemID))
 	if err != nil {
-		log.Printf("Failed to retrieve problem: %s", err)
+		log.Printf("Failed to retrieve problem for %s/%d: %s", userID, problemID, err)
 		httpresp.ServerError(w, "Failed to retrieve problem")
 		return
 	}

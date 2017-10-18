@@ -3,14 +3,15 @@ package problems
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+
+	"github.com/algoristas/api/util"
 )
 
+// CodeforcesProblem describes a problem JSON object as returned by the Codeforces API.
 type CodeforcesProblem struct {
 	ContestID uint    `json:"contestId"`
 	Index     string  `json:"index"`
@@ -18,6 +19,7 @@ type CodeforcesProblem struct {
 	Points    float32 `json:"points"`
 }
 
+// CodeforcesSubmission describes a submission JSON object as returned by the Codeforces API.
 type CodeforcesSubmission struct {
 	ID        uint              `json:"id"`
 	ContestID uint              `json:"contestId"`
@@ -25,6 +27,7 @@ type CodeforcesSubmission struct {
 	Problem   CodeforcesProblem `json:"problem"`
 }
 
+// CodeforcesSubmissionResponse describes the global JSON object returned by the Codeforces API.
 type CodeforcesSubmissionResponse struct {
 	Status string                 `json:"status"`
 	Result []CodeforcesSubmission `json:"result"`
@@ -43,6 +46,7 @@ type Problem struct {
 
 // DefaultDataProvider implements the DataProvider interface.
 type DefaultDataProvider struct {
+	httpClient *http.Client
 }
 
 // GetSets returns all the problems in the database.
@@ -60,15 +64,20 @@ func (t *DefaultDataProvider) FindProblem(userID string, problemID uint) (*Probl
 	}
 
 	// NOTE: Assuming this is a Codeforces problem for now
-	externalID := problem.ExternalID
-	contestID, err := strconv.Atoi(externalID[0 : len(externalID)-1])
-	index := externalID[len(externalID)-1:]
+	contestID := problem.ExternalID[0 : len(problem.ExternalID)-1]
+	index := problem.ExternalID[len(problem.ExternalID)-1:]
 
-	url := fmt.Sprintf(
-		"http://codeforces.com/api/contest.status?contestId=%d&handle=%s&showUnofficial=true",
-		contestID, userID,
+	req, err := util.BuildRequest(
+		"GET",
+		"http://codeforces.com/api/contest.status",
+		map[string]string{"contestId": contestID, "handle": userID, "showUnofficial": "true"},
 	)
-	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := t.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +96,9 @@ func (t *DefaultDataProvider) FindProblem(userID string, problemID uint) (*Probl
 	for _, submission := range submissionResponse.Result {
 		if submission.Problem.Index == index {
 			problem.HasTried = true
-		}
-		if submission.Verdict == "OK" {
-			problem.HasSolved = true
+			if submission.Verdict == "OK" {
+				problem.HasSolved = true
+			}
 		}
 	}
 	return problem, nil
@@ -116,5 +125,7 @@ func (t *DefaultDataProvider) findProblem(problemID uint) (*Problem, error) {
 
 // NewDataProvider returns a new DataProvider instance.
 func NewDataProvider() DataProvider {
-	return &DefaultDataProvider{}
+	return &DefaultDataProvider{
+		httpClient: util.NewHTTPClient(),
+	}
 }
