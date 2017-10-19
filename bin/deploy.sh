@@ -2,18 +2,19 @@
 function build() {
     echo
     echo "===> Building..."
-    go fmt
-    go vet
+    golint ./...            && \
+    go fmt                  && \
+    go vet                  && \
     go build -o bin/api
 }
 
 function unit_test() {
     echo
     echo "===> Running unit tests..."
-    ginkgo problems/
-    ginkgo standings/
-    ginkgo results/
-    ginkgo users/
+    ginkgo -v problems/   && \
+    ginkgo -v standings/  && \
+    ginkgo -v results/    && \
+    ginkgo -v users/
 }
 
 function run() {

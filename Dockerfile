@@ -7,16 +7,18 @@ MAINTAINER rafaelrendonpablo@gmail.com
 # Get the dependencies
 RUN go get github.com/onsi/ginkgo/ginkgo &&  go get github.com/onsi/gomega
 
-# Create application folder
-RUN mkdir -p /app
+# Will download our package to $GOPATH/src/github.com/algoristas/api
+RUN go get github.com/algoristas/api
 
 # Set working directory
-WORKDIR /app
-ENV APP_ROOT /app
-COPY . /app
+ENV APP_ROOT $GOPATH/src/github.com/algoristas/api
+WORKDIR $GOPATH/src/github.com/algoristas/api
+COPY . $GOPATH/src/github.com/algoristas/api
 
-# Get & Build API
-RUN go get github.com/algoristas/api
+# Get dependencies
+RUN go get
+
+# Build
 RUN env GOOS=linux GOARCH=amd64 go build -o bin/api github.com/algoristas/api
 
 # Configure port
@@ -24,4 +26,3 @@ EXPOSE 8080
 
 # Run deploy and test it
 CMD ["./bin/deploy.sh"]
-#CMD ["./bin/api"]
