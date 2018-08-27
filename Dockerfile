@@ -5,7 +5,7 @@ FROM golang:1.8
 MAINTAINER rafaelrendonpablo@gmail.com
 
 # Get the dependencies
-RUN go get github.com/onsi/ginkgo/ginkgo &&  go get github.com/onsi/gomega
+RUN go get github.com/onsi/ginkgo/ginkgo &&  go get github.com/onsi/gomega && go get -u golang.org/x/lint/golint
 
 # Will download our package to $GOPATH/src/github.com/algoristas/api
 RUN go get github.com/algoristas/api
