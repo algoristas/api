@@ -1,5 +1,5 @@
 # Golang version
-FROM golang:1.8
+FROM golang:1.14
 
 # Maintainer
 MAINTAINER rafaelrendonpablo@gmail.com
